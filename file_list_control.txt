@@ -1,0 +1,3 @@
+/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/hpapdata/HPAP-052/Islet-Studies/Islet-molecular-phenotyping-studies/Single-cell-RNAseq/Stanford_scRNAseq/
+/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/hpapdata/HPAP-053/Islet-Studies/Islet-molecular-phenotyping-studies/Single-cell-RNAseq/Stanford_scRNAseq/
+/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/hpapdata/HPAP-054/Islet-Studies/Islet-molecular-phenotyping-studies/Single-cell-RNAseq/Stanford_scRNAseq/
