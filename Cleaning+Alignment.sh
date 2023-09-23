@@ -7,8 +7,25 @@ OUTPUT_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Alig
 for fastq_file in "$FASTQ_DIR"/*-R1_fastq-data.fastq.gz; do
     base_name=$(basename "$fastq_file" -R1_fastq-data.fastq.gz) #Removing suffix to later find the R2 strand
     paired_file="$FASTQ_DIR/${base_name}-R2_fastq-data.fastq.gz"
-    echo "base name: $base_name"s
-    echo ""
-    echo "$paired_file"
+    echo "--------------------"
+    # echo "$fastq_file"
+    # echo ""
+    echo "base name: $base_name"
+    # echo ""
+    # echo "$paired_file"
+    
+
+
+    IFS='_' read -ra META <<< "$base_name"
+            donor="${META[0]}"
+            cell="${META[2]}"
+            
+    IFS='-' read -ra META2 <<< "$cell"
+            cell="${META2[1]}"        
+            # Append to the metadata file
+            echo "$OUTPUT_DIR/${base_name}_quant/quant.sf,$donor,$cell"
+    echo "--------------------"
 done
+
+
 
