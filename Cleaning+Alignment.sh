@@ -1,4 +1,20 @@
 #!/bin/bash
+############################################################################################
+# Script Name: Single Cell RNA-seq Processing Pipeline
+# Description: This script processes single-cell RNA-seq 
+#              data by cleaning the FASTQ files with fastp 
+#              and then aligning with Salmon. Additionally, 
+#              metadata is extracted and saved.
+# Author: Jonathan Anzules
+# Contact: jonanzule@gmail.com
+# Date Created: September 23, 2023
+# Usage: ./Cleaning+Alignment.sh
+# Dependencies: 
+#   - fastp
+#   - salmon
+#   - Bash
+############################################################################################
+
 
 FILE_LIST="/mnt/c/Users/jonan/Documents/1Work/scWork/Code-for-Single-Cell-Analysis/file_list_T2D.txt"
 FASTQ_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/hpapdata/HPAP-051/Islet-Studies/Islet-molecular-phenotyping-studies/Single-cell-RNAseq/Stanford_scRNAseq"
@@ -8,9 +24,9 @@ SALM_INDEX="/mnt/c/Users/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/GRCh38-Tran
 scMETADATA_NAME="metadata_T2D"
 
 #Testing count
-echo "How many times should we test?"
-read count_end
-count=0
+# echo "How many times should we test?"
+# read count_end
+# count=0
 
 # Initialize the metadata file
 METADATA_FILE="$OUTPUT_DIR/${scMETADATA_NAME}.csv"
@@ -24,11 +40,11 @@ for file_pwd in $(cat $FILE_LIST); do
     echo "Processing file: $file_pwd"
 
     for fastq_file in "$file_pwd"/*-R1_fastq-data.fastq.gz; do
-        # Adding and testing the count
-        ((count++))
-        if [[ $count -ge $count_end ]]; then
-            break
-        fi
+        # # Adding and testing the count
+        # ((count++))
+        # if [[ $count -ge $count_end ]]; then
+        #     break
+        # fi
 
         base_name=$(basename "$fastq_file" -R1_fastq-data.fastq.gz) #Removing suffix to later find the R2 strand
         paired_file="$FASTQ_DIR/${base_name}-R2_fastq-data.fastq.gz"
@@ -70,7 +86,7 @@ for file_pwd in $(cat $FILE_LIST); do
             fi
         fi
       
-        # I will be using the part of the file name to name the cell. If this doesn't work, the meta data has a similar cellID
+        # I will be using the part of the file name to name the cell. OG metadata has a similar cellID
         IFS='_' read -ra META <<< "$base_name"
                 donor="${META[0]}"
                 cell="${META[2]}"
@@ -83,4 +99,4 @@ for file_pwd in $(cat $FILE_LIST); do
     done
 done
 # removing temp folder
-# rm temp
+rm -r temp
