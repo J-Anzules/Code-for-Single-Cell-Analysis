@@ -37,7 +37,11 @@ mkdir temp
 
 #Loop over each FASTQ file
 for file_pwd in $(cat $FILE_LIST); do
+    echo "#############################################################"
+    echo "#############################################################"
     echo "Processing file: $file_pwd"
+    echo "#############################################################"
+    echo "#############################################################"
 
     for fastq_file in "$file_pwd"/*-R1_fastq-data.fastq.gz; do
         # # Adding and testing the count
@@ -47,7 +51,7 @@ for file_pwd in $(cat $FILE_LIST); do
         # fi
 
         base_name=$(basename "$fastq_file" -R1_fastq-data.fastq.gz) #Removing suffix to later find the R2 strand
-        paired_file="$FASTQ_DIR/${base_name}-R2_fastq-data.fastq.gz"
+        paired_file="$file_pwd/${base_name}-R2_fastq-data.fastq.gz"
         
         echo "--------------------"
         echo "file name:"
@@ -83,19 +87,20 @@ for file_pwd in $(cat $FILE_LIST); do
 
             if [ $? -eq 0 ]; then
                 rm "./temp/${base_name}_clean_R1.fastq.gz" "./temp/${base_name}_clean_R2.fastq.gz"
+                # I will be using the part of the file name to name the cell. OG metadata has a similar cellID
+                IFS='_' read -ra META <<< "$base_name"
+                        donor="${META[0]}"
+                        cell="${META[2]}"
+                        
+                IFS='-' read -ra META2 <<< "$cell"
+                        cell="${META2[1]}"        
+                        # Append to the metadata file
+                        echo "$OUTPUT_DIR/${base_name}_quant/quant.sf,$donor,$cell" >> $METADATA_FILE
             fi
         fi
       
-        # I will be using the part of the file name to name the cell. OG metadata has a similar cellID
-        IFS='_' read -ra META <<< "$base_name"
-                donor="${META[0]}"
-                cell="${META[2]}"
-                
-        IFS='-' read -ra META2 <<< "$cell"
-                cell="${META2[1]}"        
-                # Append to the metadata file
-                echo "$OUTPUT_DIR/${base_name}_quant/quant.sf,$donor,$cell" >> $METADATA_FILE
-        # echo "--------------------"
+        
+        echo "--------------------"
     done
 done
 # removing temp folder
