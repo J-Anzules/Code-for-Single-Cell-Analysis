@@ -1,0 +1,61 @@
+---
+title: "Creating Tx2Gene file"
+author: "Jonathan Anzules"
+date: "2023-09-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tximport)
+library(GenomicFeatures)
+```
+
+```{r}
+txdb <- makeTxDbFromGFF("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/gencode.v44.chr_patch_hapl_scaff.annotation.gtf.gz")
+
+# keytypes(txdb)
+k <- keys(txdb, keytype = "TXNAME")
+
+tx2gene <- select(txdb, k, "GENEID", "TXNAME") # only works om 4.3.0 # Restart and clear output if this doesn't work
+# I think code is getting confused with another select() in another package, I'm not sure which one it is yet.
+tx2gene <- as.data.frame(tx2gene)
+tx2gene <- tx2gene[, c("TXNAME", "GENEID")]
+
+#Saving the Dataframe
+write.csv(tx2gene, "/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/tx2gene-Mappings", row.names=FALSE)
+```
+
+```{r - Preparing quantfiles}
+#Grabbing the quant.sf files metadata and editing paths to work with R
+T2D_files <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
+T2D_files$quant_file <- gsub("^/mnt/c", "C:", T2D_files$quant_file)
+
+#Reading in the tx2gene dataframe
+tx2gene <- read.csv("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/tx2gene-Mappings")
+```
+
+```{r - Creating the HDF5 file}
+
+# Assuming your metadata dataframe is named 'metadata'
+files <- T2D_files$quant_file
+
+txi <- tximport(files, type = "salmon", tx2gene = tx2gene)
+str(txi)
+# Assign cell IDs from metadata as column names of the count matrix
+colnames(txi$counts) <- T2D_files$cell
+
+# Now proceed to save the count matrix as an HDF5 file
+h5createFile("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data_T2D.h5")
+h5write(txi$counts, "/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data.h5", "counts")
+```
+
+
+
+
+
+
+
+
+
