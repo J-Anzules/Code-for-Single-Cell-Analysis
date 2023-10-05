@@ -8,9 +8,21 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(tximport)
-library(GenomicFeatures)
+library(tximport) # Importing quant_sf files
+library(GenomicFeatures) #Useful genomics tools
+BiocManager::install("rhdf5")
+library(rhdf5) #To make an hdf5 files
 ```
+
+```{r - Updating bioconductor}
+library(BiocManager)
+BiocManager::install()
+```
+
+**To Do**
+- When I move the hdf5 file add something that also moves or makes a metadata file of what information is contained
+
+
 
 ```{r}
 txdb <- makeTxDbFromGFF("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/gencode.v44.chr_patch_hapl_scaff.annotation.gtf.gz")
@@ -32,23 +44,51 @@ write.csv(tx2gene, "/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens
 T2D_files <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
 T2D_files$quant_file <- gsub("^/mnt/c", "C:", T2D_files$quant_file)
 
+dim(T2D_files)
+
 #Reading in the tx2gene dataframe
 tx2gene <- read.csv("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/tx2gene-Mappings")
 ```
 
+```{r - Removing files that have failed}
+# Grabbing files address
+files <- T2D_files$quant_file
+
+missing_files <- files[!file.exists(files)]
+
+# Removing missing files from T2D_files dataframe
+T2D_files <- T2D_files[!T2D_files$quant_file %in% missing_files,]
+
+dim(T2D_files)
+length(missing_files)
+```
+
 ```{r - Creating the HDF5 file}
 
-# Assuming your metadata dataframe is named 'metadata'
+# Grabbing files address
 files <- T2D_files$quant_file
 
 txi <- tximport(files, type = "salmon", tx2gene = tx2gene)
 str(txi)
 # Assign cell IDs from metadata as column names of the count matrix
 colnames(txi$counts) <- T2D_files$cell
+colnames(txi$counts)
 
-# Now proceed to save the count matrix as an HDF5 file
+# # Now proceed to save the count matrix as an HDF5 file
 h5createFile("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data_T2D.h5")
 h5write(txi$counts, "/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data.h5", "counts")
+```
+
+```{r}
+# Create an HDF5 file
+hdf5_filename <- "/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data_T2D.h5"
+h5createFile(hdf5_filename)
+
+# Store each component of the txi list in the HDF5 file
+h5write(txi$abundance, hdf5_filename, "abundance")
+h5write(txi$counts, hdf5_filename, "counts")
+h5write(txi$length, hdf5_filename, "length")
+h5write(txi$countsFromAbundance, hdf5_filename, "countsFromAbundance")
 ```
 
 

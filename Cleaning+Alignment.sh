@@ -85,7 +85,7 @@ for file_pwd in $(cat $FILE_LIST); do
             #                 -o "$OUTPUT_DIR/${base_name}_quant"
             # Check if salmon was successful
             if [ $? -eq 0 ]; then
-                rm "./temp/${base_name}_clean_R1.fastq.gz" "./temp/${base_name}_clean_R2.fastq.gz"
+                # rm "./temp/${base_name}_clean_R1.fastq.gz" "./temp/${base_name}_clean_R2.fastq.gz"
                 # I will be using the part of the file name to name the cell. OG metadata has a similar cellID
                 IFS='_' read -ra META <<< "$base_name"
                         donor="${META[0]}"
@@ -103,4 +103,4 @@ for file_pwd in $(cat $FILE_LIST); do
     done
 done
 # removing temp folder
-rm -r temp
+# rm -r temp
