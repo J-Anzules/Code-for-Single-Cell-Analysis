@@ -17,7 +17,6 @@
 
 
 FILE_LIST="/mnt/c/Users/jonan/Documents/1Work/scWork/Code-for-Single-Cell-Analysis/file_list_T2D.txt"
-FASTQ_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/hpapdata/HPAP-051/Islet-Studies/Islet-molecular-phenotyping-studies/Single-cell-RNAseq/Stanford_scRNAseq"
 OUTPUT_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata"
 SALM_INDEX="/mnt/c/Users/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/GRCh38-Transcript-Salmon-index"
 
@@ -69,22 +68,22 @@ for file_pwd in $(cat $FILE_LIST); do
         
         # Use fastp to clean the FASTQ files
         # File will be made in local directory, deleted later 
-        fastp   -i "$fastq_file" \
-                -o "./temp/${base_name}_clean_R1.fastq.gz" \
-                -I "$paired_file" \
-                -O "./temp/${base_name}_clean_R2.fastq.gz" \
-                --json /dev/null \
-                --html /dev/null
+        # fastp   -i "$fastq_file" \
+        #         -o "./temp/${base_name}_clean_R1.fastq.gz" \
+        #         -I "$paired_file" \
+        #         -O "./temp/${base_name}_clean_R2.fastq.gz" \
+        #         --json /dev/null \
+        #         --html /dev/null
 
          # Check if fastp was successful
         if [ $? -eq 0 ]; then
             # Align with salmon
-            salmon quant    -i "$SALM_INDEX" \
-                            -l A \
-                            -1 ./temp/"${base_name}_clean_R1.fastq.gz" \
-                            -2 ./temp/"${base_name}_clean_R2.fastq.gz" \
-                            -o "$OUTPUT_DIR/${base_name}_quant"
-
+            # salmon quant    -i "$SALM_INDEX" \
+            #                 -l A \
+            #                 -1 ./temp/"${base_name}_clean_R1.fastq.gz" \
+            #                 -2 ./temp/"${base_name}_clean_R2.fastq.gz" \
+            #                 -o "$OUTPUT_DIR/${base_name}_quant"
+            # Check if salmon was successful
             if [ $? -eq 0 ]; then
                 rm "./temp/${base_name}_clean_R1.fastq.gz" "./temp/${base_name}_clean_R2.fastq.gz"
                 # I will be using the part of the file name to name the cell. OG metadata has a similar cellID
