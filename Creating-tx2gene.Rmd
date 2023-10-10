@@ -10,17 +10,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tximport) # Importing quant_sf files
 library(GenomicFeatures) #Useful genomics tools
-BiocManager::install("rhdf5")
-library(rhdf5) #To make an hdf5 files
-```
-
-```{r - Updating bioconductor}
 library(BiocManager)
-BiocManager::install()
+library(rhdf5) #To make an hdf5 files
+library(Rtsne)
 ```
 
 **To Do**
 - When I move the hdf5 file add something that also moves or makes a metadata file of what information is contained
+- Learn how to work with the txi data
+- cluster the cells and visualize with tsne and Umap
+  - Identify the which genes are the most prevalent in each cluster.
+- Perform a pseudo time analysis
 
 
 
@@ -89,8 +89,29 @@ h5write(txi$abundance, hdf5_filename, "abundance")
 h5write(txi$counts, hdf5_filename, "counts")
 h5write(txi$length, hdf5_filename, "length")
 h5write(txi$countsFromAbundance, hdf5_filename, "countsFromAbundance")
+
+str(txi)
 ```
 
+```{r}
+pca_res <- prcomp(t(log1p(txi$counts)))
+tsne_res <- Rtsne(pca_res$x[, 1:9], perplexity=2)
+
+pca_res$x
+tsne_res <- Rtsne(pca_res$x, perplexity=2)  # using first 10 PCA components
+plot(tsne_res$Y, col = rainbow(nrow(txi$counts)), pch = 20, main = "t-SNE plot", xlab = "", ylab = "")
+
+```
+```{r}
+
+# Run the t-SNE algorithm
+tsne_res <- Rtsne(txi$counts, perplexity=30)  # adjust perplexity as needed
+
+# Plot the results
+plot(tsne_res$Y, t='n', main="t-SNE plot")
+text(tsne_res$Y, labels=row.names(data_matrix), cex=0.7, col="blue")
+
+```
 
 
 
