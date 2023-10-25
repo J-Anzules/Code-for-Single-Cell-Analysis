@@ -25,18 +25,18 @@ library(Rtsne)
 
 
 ```{r}
-txdb <- makeTxDbFromGFF("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/gencode.v44.chr_patch_hapl_scaff.annotation.gtf.gz")
-
-# keytypes(txdb)
-k <- keys(txdb, keytype = "TXNAME")
-
-tx2gene <- select(txdb, k, "GENEID", "TXNAME") # only works om 4.3.0 # Restart and clear output if this doesn't work
-# I think code is getting confused with another select() in another package, I'm not sure which one it is yet.
-tx2gene <- as.data.frame(tx2gene)
-tx2gene <- tx2gene[, c("TXNAME", "GENEID")]
-
-#Saving the Dataframe
-write.csv(tx2gene, "/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/tx2gene-Mappings", row.names=FALSE)
+# txdb <- makeTxDbFromGFF("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/gencode.v44.chr_patch_hapl_scaff.annotation.gtf.gz")
+# 
+# # keytypes(txdb)
+# k <- keys(txdb, keytype = "TXNAME")
+# 
+# tx2gene <- select(txdb, k, "GENEID", "TXNAME") # only works om 4.3.0 # Restart and clear output if this doesn't work
+# # I think code is getting confused with another select() in another package, I'm not sure which one it is yet.
+# tx2gene <- as.data.frame(tx2gene)
+# tx2gene <- tx2gene[, c("TXNAME", "GENEID")]
+# 
+# #Saving the Dataframe
+# write.csv(tx2gene, "/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/tx2gene-Mappings", row.names=FALSE)
 ```
 
 ```{r - Preparing quantfiles}
@@ -44,7 +44,7 @@ write.csv(tx2gene, "/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens
 T2D_files <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
 T2D_files$quant_file <- gsub("^/mnt/c", "C:", T2D_files$quant_file)
 
-dim(T2D_files)
+# dim(T2D_files)
 
 #Reading in the tx2gene dataframe
 tx2gene <- read.csv("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/tx2gene-Mappings")
@@ -69,11 +69,14 @@ length(missing_files)
 files <- T2D_files$quant_file
 
 txi <- tximport(files, type = "salmon", tx2gene = tx2gene)
-str(txi)
+
 # Assign cell IDs from metadata as column names of the count matrix
 colnames(txi$counts) <- T2D_files$cell
-colnames(txi$counts)
+str(txi)
 
+
+
+txi$length
 # # Now proceed to save the count matrix as an HDF5 file
 h5createFile("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data_T2D.h5")
 h5write(txi$counts, "/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data.h5", "counts")
@@ -89,9 +92,29 @@ h5write(txi$abundance, hdf5_filename, "abundance")
 h5write(txi$counts, hdf5_filename, "counts")
 h5write(txi$length, hdf5_filename, "length")
 h5write(txi$countsFromAbundance, hdf5_filename, "countsFromAbundance")
+h5write(colnames(txi$counts), hdf5_filename, "counts_colnames")
+h5write(rownames(txi$counts), hdf5_filename, "counts_rownames")
 
-str(txi)
 ```
+# Analyzing count matrix
+
+```{r - Reading in the count matrix}
+
+library(rhdf5)
+
+# Read each component from the HDF5 file into a list
+txi_read <- list(
+  abundance = h5read(hdf5_filename, "abundance"),
+  counts = h5read(hdf5_filename, "counts"),
+  length = h5read(hdf5_filename, "length"),
+  countsFromAbundance = h5read(hdf5_filename, "countsFromAbundance")
+)
+
+# Now, txi_read contains the data from your HDF5 file
+print(txi_read)
+
+```
+
 
 ```{r}
 pca_res <- prcomp(t(log1p(txi$counts)))
