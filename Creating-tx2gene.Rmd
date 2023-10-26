@@ -13,6 +13,8 @@ library(GenomicFeatures) #Useful genomics tools
 library(BiocManager)
 library(rhdf5) #To make an hdf5 files
 library(Rtsne)
+library(DESeq2) # For normalizing
+library(scran) # normalization based on cell clusters
 ```
 
 **To Do**
@@ -110,9 +112,18 @@ txi_read <- list(
   countsFromAbundance = h5read(hdf5_filename, "countsFromAbundance")
 )
 
-# Now, txi_read contains the data from your HDF5 file
-print(txi_read)
+# Reading and assigning row and column names
+rownames(txi_read$counts) <- h5read(hdf5_filename, "counts_rownames")
+colnames(txi_read$counts) <- h5read(hdf5_filename, "counts_colnames")
 
+str(txi_read)
+```
+
+```{r - Normalizing Data - Size factor estimates to clusters}
+
+clusters <- quickCluster(txi$counts)
+
+hist(as.numeric(clusters))
 ```
 
 
