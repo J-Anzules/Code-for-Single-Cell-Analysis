@@ -15,6 +15,7 @@ library(rhdf5) #To make an hdf5 files
 library(Rtsne)
 library(DESeq2) # For normalizing
 library(scran) # normalization based on cell clusters
+library(SingleCellExperiment) #For holding single-cell RNA_seq data
 ```
 
 **To Do**
@@ -118,12 +119,25 @@ colnames(txi_read$counts) <- h5read(hdf5_filename, "counts_colnames")
 
 str(txi_read)
 ```
+```{r}
+
+```
+
 
 ```{r - Normalizing Data - Size factor estimates to clusters}
+# Creating a SingleCellExperiment object
+sce <- SingleCellExperiment(assays = list(counts = txi$counts))
+clusters <- quickCluster(sce)
+sce <- computeSumFactors(sce, clusters=clusters)
+size_factors <- sizeFactors(sce)
+
+
+
 
 clusters <- quickCluster(txi$counts)
-
+str(clusters)
 hist(as.numeric(clusters))
+size_factors <- computeSumFactors(txi$counts, clusters=clusters)
 ```
 
 
