@@ -119,7 +119,17 @@ colnames(txi_read$counts) <- h5read(hdf5_filename, "counts_colnames")
 
 str(txi_read)
 ```
-```{r}
+
+# Getting to know the counts dataset before normalization
+```{r - summary}
+txi_sum <- summary(txi_read$counts)
+
+dim(txi_read$counts) #62266 783
+dim(txi_sum) # 6 783
+```
+
+```{r - testing}
+ran
 
 ```
 
