@@ -99,11 +99,11 @@ h5write(colnames(txi$counts), hdf5_filename, "counts_colnames")
 h5write(rownames(txi$counts), hdf5_filename, "counts_rownames")
 
 ```
-# Analyzing count matrix
+# Loading count matrix
 
 ```{r - Reading in the count matrix}
 
-library(rhdf5)
+hdf5_filename <- "/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/txi_data_T2D.h5"
 
 # Read each component from the HDF5 file into a list
 txi_read <- list(
@@ -120,16 +120,24 @@ colnames(txi_read$counts) <- h5read(hdf5_filename, "counts_colnames")
 str(txi_read)
 ```
 
-# Getting to know the counts dataset before normalization
+# Analyzing count matrix before normalization
 ```{r - summary}
 txi_sum <- summary(txi_read$counts)
 
 dim(txi_read$counts) #62266 783
 dim(txi_sum) # 6 783
+
+boxplot(log1p(txi_read$counts), las=2, main="Log-transformed Counts per Sample")
 ```
 
 ```{r - testing}
-ran
+
+# Visualizing kernel density estimates
+plot(density(log1p(rowMeans(txi_read$counts))), main="Density of Log-transformed Average Counts", 
+     xlim = c(1, 10),
+     ylim = c(0, 0.2))
+```
+
 
 ```
 
