@@ -119,27 +119,61 @@ colnames(txi_read$counts) <- h5read(hdf5_filename, "counts_colnames")
 
 str(txi_read)
 ```
+```{r - EnsembleID needs to be changed to gene symbols}
+
+library(biomaRt)
+
+# Connect to the Ensembl database
+mart <- useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+
+# Get a list of your Ensembl IDs
+ensembl_ids <- rownames(txi_read$counts)  # Replace with your actual row names
+
+# Retrieve the corresponding gene symbols
+gene_info <- getBM(attributes = c('ensembl_gene_id', 'external_gene_name'),
+                   filters = 'ensembl_gene_id',
+                   values = ensembl_ids,
+                   mart = mart)
+
+# Merge gene symbols with your data
+txi_read$counts_rownames <- gene_info$external_gene_name[match(ensembl_ids, gene_info$ensembl_gene_id)]
+
+# Identify mitochondrial genes
+mito_genes <- grep("^MT-", txi_read$counts_rownames, value = TRUE)
+
+
+```
 
 # Analyzing count matrix before normalization
-```{r - summary}
-txi_sum <- summary(txi_read$counts)
 
-dim(txi_read$counts) #62266 783
-dim(txi_sum) # 6 783
+```{r - density plots of expression data}
 
-boxplot(log1p(txi_read$counts), las=2, main="Log-transformed Counts per Sample")
-```
+# Set up the graphics window
+par(mfrow = c(1, 2))
 
-```{r - testing}
 
-# Visualizing kernel density estimates
 plot(density(log1p(rowMeans(txi_read$counts))), main="Density of Log-transformed Average Counts", 
+     xlim = c(0, 10))
+
+plot(density(log1p(rowMeans(txi_read$counts))), main="zoomed in", 
      xlim = c(1, 10),
      ylim = c(0, 0.2))
+
+# Reset the graphical parameters back to default (optional)
+par(mfrow = c(1, 1))
+```
+
+
+
+```{r - PCA visualization}
+
+pca_res <- prcomp(t(log1p(txi_read$counts)))
+plot(pca_res$x[,1], pca_res$x[,2], xlab="PC1", ylab="PC2", main="PCA of Counts Data")
 ```
 
 
 ```
+
 
 
 ```{r - Normalizing Data - Size factor estimates to clusters}
