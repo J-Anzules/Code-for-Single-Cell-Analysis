@@ -16,17 +16,24 @@ library(Rtsne)
 library(DESeq2) # For normalizing
 library(scran) # normalization based on cell clusters
 library(SingleCellExperiment) #For holding single-cell RNA_seq data
+library(biomaRt) # Switching names from ensemble ID to gene symbol
+library(Seurat)
 ```
 
 **To Do**
-- When I move the hdf5 file add something that also moves or makes a metadata file of what information is contained
+- Create metadata of hdf5 file
 - Learn how to work with the txi data
+- Change ensembl_ID to gene symbols in the hdf5 file and make code smoother
+    in this aspect
+- Remove low quality reads based on MT statistics
+- Normalize data
 - cluster the cells and visualize with tsne and Umap
-  - Identify the which genes are the most prevalent in each cluster.
+- Identify beta cell clusters
 - Perform a pseudo time analysis
 
 
 
+# Makign count matrix
 ```{r}
 # txdb <- makeTxDbFromGFF("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/gencode.v44.chr_patch_hapl_scaff.annotation.gtf.gz")
 # 
@@ -99,7 +106,7 @@ h5write(colnames(txi$counts), hdf5_filename, "counts_colnames")
 h5write(rownames(txi$counts), hdf5_filename, "counts_rownames")
 
 ```
-# Loading count matrix
+# Loading count matrix and some processing
 
 ```{r - Reading in the count matrix}
 
@@ -119,27 +126,59 @@ colnames(txi_read$counts) <- h5read(hdf5_filename, "counts_colnames")
 
 str(txi_read)
 ```
-```{r - EnsembleID needs to be changed to gene symbols}
 
-library(biomaRt)
 
-# Connect to the Ensembl database
-mart <- useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+```{r}
+head(rownames(txi_read$counts))
+```
+```{r}
+# Removing version number
+rownames(txi_read$counts) <- gsub("\\.\\d+$", "", ensembl_ids)
 
 # Get a list of your Ensembl IDs
-ensembl_ids <- rownames(txi_read$counts)  # Replace with your actual row names
+ensembl_ids <- rownames(txi_read$counts)
 
-# Retrieve the corresponding gene symbols
-gene_info <- getBM(attributes = c('ensembl_gene_id', 'external_gene_name'),
-                   filters = 'ensembl_gene_id',
-                   values = ensembl_ids,
-                   mart = mart)
+# Connecting to Ensembl database
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
 
-# Merge gene symbols with your data
-txi_read$counts_rownames <- gene_info$external_gene_name[match(ensembl_ids, gene_info$ensembl_gene_id)]
+# Convert Ensemble IDs to ensembl_gene_id Gene IDs
+gene_symbols_ids <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                       filters = "ensembl_gene_id",
+                       values = ensembl_ids,
+                       mart = ensembl)
 
-# Identify mitochondrial genes
-mito_genes <- grep("^MT-", txi_read$counts_rownames, value = TRUE)
+# Replacing original Ensembl IDs - Testing done below
+rownames(txi_read$counts) <- gene_symbols_ids$external_gene_name
+
+```
+
+
+```{r - Testing}
+if (nrow(txi_read$counts) == length(gene_symbols)) {
+  print("numbers ok")
+    
+  # rownames(txi_read$counts) <- gene_symbols$external_gene_name
+} else {
+    # Handle the case where the lengths differ
+    # This could involve error handling or additional logic
+    warning("The number of genes in txi_read$counts does not match the number of gene symbols retrieved.")
+}
+
+# Creating a named vector for testing
+gene_symbols <- setNames(gene_symbols_ids$external_gene_name, gene_symbols_ids$ensembl_gene_id)
+head(gene_symbols)
+# Extracting Ensembl IDs from the named vector
+ensembl_ids_from_vector <- names(gene_symbols)
+
+# Checking if the order matches with txi_read$counts row names
+is_order_matching <- all(ensembl_ids_from_vector == rownames(txi_read$counts))
+
+# Print the result
+if (is_order_matching) {
+    print("The order of Ensembl IDs matches.")
+} else {
+    print("The order of Ensembl IDs does not match.")
+}
 
 
 ```
@@ -171,11 +210,29 @@ pca_res <- prcomp(t(log1p(txi_read$counts)))
 plot(pca_res$x[,1], pca_res$x[,2], xlab="PC1", ylab="PC2", main="PCA of Counts Data")
 ```
 
+```{r - Looking at mitochondrial gene statistics}
+
+
+
+# Assuming txi_read$counts is your count matrix
+seurat_object <- CreateSeuratObject(counts = txi_read$counts)
+
+# Calculate the percentage of mitochondrial genes
+mitochondrial_genes <- grep(pattern = "^MT-", x = rownames(x = seurat_object), value = TRUE)
+percent.mt <- Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")[mitochondrial_genes, ]) / Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")) * 100
+seurat_object[["percent.mt"]] <- CreateAssayObject(counts = matrix(percent.mt))
+
+# Plotting
+VlnPlot(seurat_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
 
 ```
 
 
 
+
+
+#After Normalization
 ```{r - Normalizing Data - Size factor estimates to clusters}
 # Creating a SingleCellExperiment object
 sce <- SingleCellExperiment(assays = list(counts = txi$counts))
