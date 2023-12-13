@@ -30,7 +30,7 @@ library(Seurat)
 - cluster the cells and visualize with tsne and Umap
 - Identify beta cell clusters
 - Perform a pseudo time analysis
-
+- Why are there empty and duplicate rows
 
 
 # Makign count matrix
@@ -212,8 +212,6 @@ plot(pca_res$x[,1], pca_res$x[,2], xlab="PC1", ylab="PC2", main="PCA of Counts D
 
 ```{r - Looking at mitochondrial gene statistics}
 
-
-
 # Assuming txi_read$counts is your count matrix
 seurat_object <- CreateSeuratObject(counts = txi_read$counts)
 
@@ -221,14 +219,57 @@ seurat_object <- CreateSeuratObject(counts = txi_read$counts)
 mitochondrial_genes <- grep(pattern = "^MT-", x = rownames(x = seurat_object), value = TRUE)
 percent.mt <- Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")[mitochondrial_genes, ]) / Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")) * 100
 seurat_object[["percent.mt"]] <- CreateAssayObject(counts = matrix(percent.mt))
+# Assuming percent.mt is a vector with length equal to the number of cells in seurat_object
+# and its names correspond to the cell names in seurat_object
+seurat_object[["percent.mt"]] <- percent.mt
+
 
 # Plotting
 VlnPlot(seurat_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 
 
 ```
+Threshold
+A - Lower: 4500
+    Upper: 8900
+B - Lower: 190k
+    Upper: 1.750M
+C - Upper: 40
 
 
+  
+
+```{r - Troubleshooting}
+# Check for empty row names
+empty_row_names <- which(rownames(txi_read$counts) == "")
+num_empty_row_names <- length(empty_row_names)
+
+print(paste("Number of empty row names:", num_empty_row_names))
+
+# Find duplicate row names
+duplicate_row_names <- rownames(txi_read$counts)[duplicated(rownames(txi_read$counts))]
+num_duplicate_row_names <- length(unique(duplicate_row_names))
+
+print(paste("Number of duplicate row names:", num_duplicate_row_names))
+
+```
+
+```{r - Clearing duplicates and empties}
+
+# Identify rows with empty row names
+empty_rows <- which(rownames(txi_read$counts) == "")
+
+# Remove these rows
+if (length(empty_rows) > 0) {
+    txi_read$counts <- txi_read$counts[-empty_rows, ]
+}
+
+# Identify and remove duplicate rows
+duplicate_rows <- duplicated(rownames(txi_read$counts))
+txi_read$counts <- txi_read$counts[!duplicate_rows, ]
+
+
+```
 
 
 
