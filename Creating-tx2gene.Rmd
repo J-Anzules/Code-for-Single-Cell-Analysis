@@ -209,6 +209,23 @@ par(mfrow = c(1, 1))
 pca_res <- prcomp(t(log1p(txi_read$counts)))
 plot(pca_res$x[,1], pca_res$x[,2], xlab="PC1", ylab="PC2", main="PCA of Counts Data")
 ```
+```{r - Clearing duplicates and empties}
+
+# Identify rows with empty row names
+empty_rows <- which(rownames(txi_read$counts) == "")
+
+# Remove these rows
+if (length(empty_rows) > 0) {
+    txi_read$counts <- txi_read$counts[-empty_rows, ]
+}
+
+# Identify and remove duplicate rows
+duplicate_rows <- duplicated(rownames(txi_read$counts))
+txi_read$counts <- txi_read$counts[!duplicate_rows, ]
+
+
+```
+
 
 ```{r - Looking at mitochondrial gene statistics}
 
@@ -237,6 +254,24 @@ B - Lower: 190k
 C - Upper: 40
 
 
+```{r - Removing low quality reads}
+
+# Define thresholds
+lower.threshold.nFeature <- 4500
+upper.threshold.nFeature <- 8900
+lower.threshold.nCount <- 190000 # 190k
+upper.threshold.nCount <- 1750000 # 1.750M
+upper.threshold.percent.mt <- 43
+
+# Subset Seurat object based on these thresholds
+seurat_object <- subset(seurat_object, subset = nFeature_RNA > lower.threshold.nFeature & 
+                                                  nFeature_RNA < upper.threshold.nFeature & 
+                                                  nCount_RNA > lower.threshold.nCount & 
+                                                  nCount_RNA < upper.threshold.nCount & 
+                                                  percent.mt < upper.threshold.percent.mt)
+VlnPlot(seurat_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+```
   
 
 ```{r - Troubleshooting}
@@ -254,22 +289,7 @@ print(paste("Number of duplicate row names:", num_duplicate_row_names))
 
 ```
 
-```{r - Clearing duplicates and empties}
 
-# Identify rows with empty row names
-empty_rows <- which(rownames(txi_read$counts) == "")
-
-# Remove these rows
-if (length(empty_rows) > 0) {
-    txi_read$counts <- txi_read$counts[-empty_rows, ]
-}
-
-# Identify and remove duplicate rows
-duplicate_rows <- duplicated(rownames(txi_read$counts))
-txi_read$counts <- txi_read$counts[!duplicate_rows, ]
-
-
-```
 
 
 
