@@ -150,6 +150,7 @@ gene_symbols_ids <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"
 # Replacing original Ensembl IDs - Testing done below
 rownames(txi_read$counts) <- gene_symbols_ids$external_gene_name
 
+str(txi_read)
 ```
 
 
@@ -167,6 +168,7 @@ if (nrow(txi_read$counts) == length(gene_symbols)) {
 # Creating a named vector for testing
 gene_symbols <- setNames(gene_symbols_ids$external_gene_name, gene_symbols_ids$ensembl_gene_id)
 head(gene_symbols)
+
 # Extracting Ensembl IDs from the named vector
 ensembl_ids_from_vector <- names(gene_symbols)
 
@@ -209,6 +211,21 @@ par(mfrow = c(1, 1))
 pca_res <- prcomp(t(log1p(txi_read$counts)))
 plot(pca_res$x[,1], pca_res$x[,2], xlab="PC1", ylab="PC2", main="PCA of Counts Data")
 ```
+```{r - Troubleshooting duplicates and empty}
+# Check for empty row names
+empty_row_names <- which(rownames(txi_read$counts) == "")
+num_empty_row_names <- length(empty_row_names)
+
+print(paste("Number of empty row names:", num_empty_row_names))
+
+# Find duplicate row names
+duplicate_row_names <- rownames(txi_read$counts)[duplicated(rownames(txi_read$counts))]
+num_duplicate_row_names <- length(unique(duplicate_row_names))
+
+print(paste("Number of duplicate row names:", num_duplicate_row_names))
+
+```
+
 ```{r - Clearing duplicates and empties}
 
 # Identify rows with empty row names
@@ -232,13 +249,17 @@ txi_read$counts <- txi_read$counts[!duplicate_rows, ]
 # Assuming txi_read$counts is your count matrix
 seurat_object <- CreateSeuratObject(counts = txi_read$counts)
 
-# Calculate the percentage of mitochondrial genes
+# Calculating the percentage of mitochondrial genes
 mitochondrial_genes <- grep(pattern = "^MT-", x = rownames(x = seurat_object), value = TRUE)
-percent.mt <- Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")[mitochondrial_genes, ]) / Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")) * 100
-seurat_object[["percent.mt"]] <- CreateAssayObject(counts = matrix(percent.mt))
-# Assuming percent.mt is a vector with length equal to the number of cells in seurat_object
-# and its names correspond to the cell names in seurat_object
+
+percent.mt <- Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")[mitochondrial_genes, ]) /
+              Matrix::colSums(GetAssayData(seurat_object, assay = "RNA", slot = "counts")) * 100
+
+# Add percent.mt to the metadata of your Seurat object
 seurat_object[["percent.mt"]] <- percent.mt
+
+
+names(percent.mt) <- colnames(seurat_object)
 
 
 # Plotting
@@ -261,7 +282,7 @@ lower.threshold.nFeature <- 4500
 upper.threshold.nFeature <- 8900
 lower.threshold.nCount <- 190000 # 190k
 upper.threshold.nCount <- 1750000 # 1.750M
-upper.threshold.percent.mt <- 43
+upper.threshold.percent.mt <- 50 # It's possible the beta cells have high mt
 
 # Subset Seurat object based on these thresholds
 seurat_object <- subset(seurat_object, subset = nFeature_RNA > lower.threshold.nFeature & 
@@ -273,21 +294,28 @@ VlnPlot(seurat_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"),
 
 ```
   
+```{r - Saving higher quality dataset}
 
-```{r - Troubleshooting}
-# Check for empty row names
-empty_row_names <- which(rownames(txi_read$counts) == "")
-num_empty_row_names <- length(empty_row_names)
+# Extract the count matrix from the Seurat object
+high_quality_counts <- GetAssayData(seurat_object, slot = "counts")
 
-print(paste("Number of empty row names:", num_empty_row_names))
+# Save the count matrix to a CSV file
+write.csv(as.matrix(high_quality_counts), file = "/Documents and Settings/jonan/Documents/1Work/scWork/Data/FirstCountMatrix.csv")
 
-# Find duplicate row names
-duplicate_row_names <- rownames(txi_read$counts)[duplicated(rownames(txi_read$counts))]
-num_duplicate_row_names <- length(unique(duplicate_row_names))
-
-print(paste("Number of duplicate row names:", num_duplicate_row_names))
 
 ```
+
+#After Quality Control
+
+```{r}
+HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/FirstCountMatrix.csv")
+head(rownames(HQ_counts))
+
+#the rownames are not being read in right
+```
+
+
+
 
 
 
