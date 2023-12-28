@@ -18,6 +18,8 @@ library(scran) # normalization based on cell clusters
 library(SingleCellExperiment) #For holding single-cell RNA_seq data
 library(biomaRt) # Switching names from ensemble ID to gene symbol
 library(Seurat)
+library(ggplot2)
+library(cowplot) # For violin plots
 ```
 
 **To Do**
@@ -305,57 +307,121 @@ write.csv(as.matrix(high_quality_counts), file = "/Documents and Settings/jonan/
 
 ```
 
-#After Quality Control
+#Normalizing and Searching for Beta cells
 
-```{r}
-HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/FirstCountMatrix.csv")
-head(rownames(HQ_counts))
+```{r - Loading and prepping data}
+HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/FirstCountMatrix.csv", row.names = 1)
 
-#the rownames are not being read in right
+#Creating a Seurat object
+seurat_object <- CreateSeuratObject(counts = HQ_counts)
+
+#Normalizing to 10000 count
+seurat_object <- NormalizeData(seurat_object, normalization.method = "LogNormalize", scale.factor = 10000)
+
+
+```
+```{r - Preping data for cell identification}
+seurat_object <- FindVariableFeatures(seurat_object, selection.method = "vst", nfeatures = 2000)
+
+top10_hvg <- head(VariableFeatures(seurat_object), 10)
+
+seurat_object <- ScaleData(seurat_object)
 ```
 
+```{r}
+# Get the rownames from the Seurat object
+gene_names <- rownames(seurat_object)
+
+grep("ALDH ", gene_names, ignore.case = TRUE, value = TRUE)
 
 
-
-
-
-
-
-#After Normalization
-```{r - Normalizing Data - Size factor estimates to clusters}
-# Creating a SingleCellExperiment object
-sce <- SingleCellExperiment(assays = list(counts = txi$counts))
-clusters <- quickCluster(sce)
-sce <- computeSumFactors(sce, clusters=clusters)
-size_factors <- sizeFactors(sce)
-
-
-
-
-clusters <- quickCluster(txi$counts)
-str(clusters)
-hist(as.numeric(clusters))
-size_factors <- computeSumFactors(txi$counts, clusters=clusters)
 ```
 
 
 ```{r}
-pca_res <- prcomp(t(log1p(txi$counts)))
-tsne_res <- Rtsne(pca_res$x[, 1:9], perplexity=2)
 
-pca_res$x
-tsne_res <- Rtsne(pca_res$x, perplexity=2)  # using first 10 PCA components
-plot(tsne_res$Y, col = rainbow(nrow(txi$counts)), pch = 20, main = "t-SNE plot", xlab = "", ylab = "")
+# List of genes
+genes <- c("PDX1", "NKX6-1", "NANOG", "MYCL")
+
+# Create multiple violin plots
+p <- VlnPlot(seurat_object, features = genes)
+
+p1 <- list() 
+for (i in seq_along(p)){
+    #Change x and y tick label font size.
+    p1[[i]] = p[[i]] + theme(axis.text.x = element_text(size = 2), 
+                             axis.text.y = element_text(size = 2),
+                             axis.title = element_text(size = 6),
+                             plot.title = element_text(size = 13))
+}
+
+  
+plot_grid(plotlist = p1, ncol = 2) #display all vlnplots. Notice that I used `p1`
+# p <- p + labs(x = "", y = "") + 
+# theme(
+#   axis.title.x = element_blank(),
+#   axis.title.y = element_blank()
+# )
+# 
+# print(p)
+
+# Adjust the size of the text within the VlnPlot function
+p <- VlnPlot(seurat_object, features = genes, pt.size = 0.1) + 
+  NoLegend() + 
+  theme_minimal(base_size = 10) +
+  theme(
+    axis.text.x = element_text(size = 8),
+    axis.text.y = element_text(size = 8),
+    axis.title = element_text(size = 8),
+    legend.position = "none"
+  )
+
+# If using Seurat v3.2.3 or higher, you can use the following to remove legends for multiple plots
+p$legend <- NULL
+
+print(p)
+
+
+```
+
+```{r}
+seurat_object <- RunPCA(seurat_object, features = VariableFeatures(object = seurat_object))
+
+FeaturePlot(seurat_object, features = c("INS", "PDX1", "NKX6-1"))
+```
+```{r - t-SNE plot highlighting INS}
+# Run t-SNE
+seurat_object <- RunTSNE(seurat_object, dims = 1:15)
+
+# Generate a t-SNE plot
+DimPlot(seurat_object, reduction = "tsne")
+
+# Create a t-SNE plot highlighting the "INS" expression
+FeaturePlot(seurat_object, features = "INS", min.cutoff = 4, reduction = "tsne")
 
 ```
 ```{r}
 
-# Run the t-SNE algorithm
-tsne_res <- Rtsne(txi$counts, perplexity=30)  # adjust perplexity as needed
+FeaturePlot(seurat_object, features = append(genes, "INS"), reduction = "tsne")
+```
+```{r}
+# Load necessary libraries
+library(monocle)
+library(Seurat)
 
-# Plot the results
-plot(tsne_res$Y, t='n', main="t-SNE plot")
-text(tsne_res$Y, labels=row.names(data_matrix), cex=0.7, col="blue")
+# Convert Seurat object to Monocle's CellDataSet format
+# Make sure to use the correct assay if you have more than one (e.g., "RNA", "SCT", etc.)
+cds <- as.cell_data_set(seurat_object)
+
+# Choose dimensionality reduction and clustering information from Seurat to use in Monocle
+cds <- reduceDimension(cds, reduction_method = 'DDRTree')
+cds <- clusterCells(cds)
+
+# Order cells in pseudotime
+cds <- orderCells(cds)
+
+# Plot the pseudotime trajectory
+plot_cell_trajectory(cds, color_by = "pseudotime")
 
 ```
 
