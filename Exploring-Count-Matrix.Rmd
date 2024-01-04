@@ -1,4 +1,4 @@
----
+--- 
 title: "Profiling Beta cell heterogeneity in T2D"
 author: "Jonathan Anzules"
 date: "2023-12-29"
@@ -134,15 +134,13 @@ pancr_cells.markers %>%
 
 
 ```{r}
-head(clstr_0, n = 5)
-head(clstr_1, n = 5)
+# head(clstr_0, n = 5)
+# head(clstr_1, n = 5)
 head(clstr_2, n = 5) # Most likely to be the beta cell cluster
-head(clstr_3, n = 5)
+# head(clstr_3, n = 5)
 head(clstr_4, n = 5) # Most likely to be the beta cell cluster
 head(clstr_5, n = 5) # Most likely to be the beta cell cluster
-head(clstr_6, n = 5) 
-
-colnames(pancr_cells)
+# head(clstr_6, n = 5) 
 ```
 # Visualizing cluster markers
 ```{r - }
@@ -244,7 +242,7 @@ plot(reducedDims(sce_pancreas)$PCA, col = plotcol, pch = 16, asp = 1)
 
 ```{r}
 plot(reducedDims(sce_pancreas)$PCA, col = brewer.pal(9,'Set1')[sce_pancreas$GMM], pch=16, asp = 1)
-lines(SlingshotDataSet(sce), lwd=2, type = 'lineages', col = 'black')
+lines(SlingshotDataSet(sce_pancreas), lwd=2, type = 'lineages', col = 'black')
 ```
 
 
