@@ -8,6 +8,7 @@ output: html_document
 ```{r}
 library(Seurat)
 library(dplyr)
+library(ggplot2)
 library(slingshot) # Pseudotime analysis
 library(grDevices) # Pseudotime colors
 library(RColorBrewer) # Pseudotime colors
@@ -116,7 +117,7 @@ DimPlot(pancr_cells, reduction = "umap")
 ```
 ## Listing markers
 ```{r}
-# clstr_0 <- FindMarkers(pancr_cells, ident.1 = 0)
+clstr_0 <- FindMarkers(pancr_cells, ident.1 = 0)
 clstr_1 <- FindMarkers(pancr_cells, ident.1 = 1)
 clstr_2 <- FindMarkers(pancr_cells, ident.1 = 2)
 clstr_3 <- FindMarkers(pancr_cells, ident.1 = 3)
