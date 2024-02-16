@@ -17,7 +17,7 @@ library(RColorBrewer) # Pseudotime colors
 
 # Data Prep
 ```{r - Loading, normalizing, identifying variaility,and scaling}
-HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/FirstCountMatrix.csv", row.names = 1)
+HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/hpap.pmacs-BetaCells/Data/FirstCountMatrix.csv", row.names = 1)
 
 #Creating a Seurat object
 pancr_cells <- CreateSeuratObject(counts = HQ_counts)
@@ -161,6 +161,7 @@ VlnPlot(pancr_cells, features = delta_features)
 FeaturePlot(pancr_cells, features = beta_features)
 FeaturePlot(pancr_cells, features = alpha_features)
 FeaturePlot(pancr_cells, features = delta_features)
+FeaturePlot(pancr_cells, features = "INS")
 ```
 
 ```{r - Heat map}
@@ -174,13 +175,13 @@ DoHeatmap(pancr_cells, features = top10$gene) + NoLegend()
 #Saving image
 heatmap_plot <- DoHeatmap(pancr_cells, features = top10$gene) + NoLegend()
 
-ggsave("/Documents and Settings/jonan/Documents/1Work/scWork/Figures/MarkersClustersHeatmap.png", plot = heatmap_plot, width = 20, height = 15, dpi = 300)
+# ggsave("/Documents and Settings/jonan/Documents/1Work/scWork/Figures/MarkersClustersHeatmap.png", plot = heatmap_plot, width = 20, height = 15, dpi = 300)
 
 ```
 
 ```{r - Visualizign donor grouping}
 
-metadata_df <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
+metadata_df <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/hpap.pmacs-BetaCells/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
 
 #removing the quantfile location column
 metadata_df$quant_file <- NULL
@@ -242,7 +243,13 @@ plot(reducedDims(sce_pancreas)$PCA, col = plotcol, pch = 16, asp = 1)
 
 
 ```{r}
+sce_pancreas
+```
+
+
+```{r}
 plot(reducedDims(sce_pancreas)$PCA, col = brewer.pal(9,'Set1')[sce_pancreas$GMM], pch=16, asp = 1)
+plot(reducedDims(sce_pancreas)$PCA, col = plotcol, pch = 16, asp = 1)
 lines(SlingshotDataSet(sce_pancreas), lwd=2, type = 'lineages', col = 'black')
 ```
 
