@@ -32,10 +32,6 @@ pancr_cells <- ScaleData(pancr_cells, features = all.genes)
 # Identifying variable features
 pancr_cells <- FindVariableFeatures(pancr_cells, selection.method = "vst", nfeatures = 2000)
 ```
-
-
-
-
 ```{r - Exploring values}
 
 head(pancr_cells[["RNA"]]$counts, n = 10)[,1:3] 
@@ -56,7 +52,6 @@ plot_hvg <- plot1 + plot2
 # Non-variable count: 38605
 # Variable count: 2000
 
-# TODO Need to set up a look for plots
 plot_hvg +
   theme(axis.text.x = element_text(size = 2), 
         axis.text.y = element_text(size = 2),
@@ -85,6 +80,8 @@ DimPlot(pancr_cells, reduction = "pca") + NoLegend()
 DimHeatmap(pancr_cells, dims = 1, cells = 500, balanced = TRUE)
 
 ```
+
+
 ```{r = PCA Plot}
 
 DimPlot(pancr_cells, reduction = "pca") + NoLegend()
@@ -125,6 +122,8 @@ clstr_4 <- FindMarkers(pancr_cells, ident.1 = 4)
 clstr_5 <- FindMarkers(pancr_cells, ident.1 = 5)
 clstr_6 <- FindMarkers(pancr_cells, ident.1 = 6)
 
+devtools::install_github('immunogenomics/presto')
+
 ```
 ```{r}
 pancr_cells.markers <- FindAllMarkers(pancr_cells, only.pos = TRUE)
@@ -151,17 +150,23 @@ head(clstr_5, n = 5) # Most likely to be the beta cell cluster
 beta_features <- c("INS", "PDX1", "NKX6-1", "MAFA", "NEUROD1", "ADCYAP1")
 alpha_features <- c("GCG", "ARX", "TTR")
 delta_features <- c("SST", "HHEX")
+mad_beta_study <- c("AMY2A", "KLF6", "GARIN4", "PPM1N", "ATF3", "CLPS")
+VlnPlot(pancr_cells, features = mad_beta_study)
 VlnPlot(pancr_cells, features = beta_features)
 VlnPlot(pancr_cells, features = alpha_features)
 VlnPlot(pancr_cells, features = delta_features)
 
+
 ```
 
 ```{r - Featureplot}
-FeaturePlot(pancr_cells, features = beta_features)
-FeaturePlot(pancr_cells, features = alpha_features)
-FeaturePlot(pancr_cells, features = delta_features)
+# FeaturePlot(pancr_cells, features = beta_features)
+# FeaturePlot(pancr_cells, features = alpha_features)
+# FeaturePlot(pancr_cells, features = delta_features)
 FeaturePlot(pancr_cells, features = "INS")
+FeaturePlot(pancr_cells, features = "AMY2A") # Could these be signs of dedifferentiated beta cells?
+FeaturePlot(pancr_cells, features = "KLF6") # Could these be signs of dedifferentiated beta cells?
+FeaturePlot(pancr_cells, features = mad_beta_study)
 ```
 
 ```{r - Heat map}
@@ -202,7 +207,10 @@ DimPlot(pancr_cells, group.by = "donor")
 
 ```{r}
 beta_cells <- subset(pancr_cells, idents = c("2", "4", "5"))
-
+# Get the row names (cell labels) from the beta_cells Seurat object
+beta_cell_labels <- rownames(beta_cells@meta.data)
+beta_cell_labels <- substr(beta_cell_labels, 2, nchar(beta_cell_labels))
+write.csv(beta_cell_labels, "../Data/beta_cell_labels_prototype.csv", row.names = FALSE)
 # Checking
 head(beta_cells@meta.data)
 head(beta_cells@reductions$pca)
@@ -337,6 +345,7 @@ pancr_cells <- RunPCA(pancr_cells, features = VariableFeatures(object = pancr_ce
 
 FeaturePlot(pancr_cells, features = c("INS", "PDX1", "NKX6-1"))
 ```
+
 ```{r - t-SNE plot highlighting INS}
 # Run t-SNE
 pancr_cells <- RunTSNE(pancr_cells, dims = 1:15)
