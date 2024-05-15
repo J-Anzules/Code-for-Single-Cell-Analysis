@@ -1,6 +1,16 @@
 #!/bin/bash
 
-# Path to the directory containing your FASTQ files
+# -------------------------------------------------------------------------------------->
+# File: process_fastq.sh
+# Author: [Your Name]
+# Date: [Date]
+# Description: This script processes FASTQ files for a large-scale analysis of beta cell
+# heterogeneity in Type 2 Diabetes (T2D). It downloads data from specified FTP links, 
+# cleans the FASTQ files using fastp, quantifies transcript abundance using Salmon,
+# and compiles metadata information.
+# -------------------------------------------------------------------------------------->
+
+# User defined directory containing your FASTQ files
 FASTQ_DIR="/path/to/fastq/files"
 OUTPUT_DIR="/path/to/output/directory"
 
