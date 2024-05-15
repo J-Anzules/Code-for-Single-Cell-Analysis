@@ -94,6 +94,7 @@ echo "------------------------"
 ls "$data_save_loc"
 
 
+# Todo: Standardize the meta data. Write it in your note file.
 # echo; echo "$(date): experiment data downloaded"; echo
 
 # # Download metadata files into ./metadata
