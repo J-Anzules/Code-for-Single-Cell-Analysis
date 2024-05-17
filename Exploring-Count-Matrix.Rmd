@@ -12,12 +12,14 @@ library(ggplot2)
 library(slingshot) # Pseudotime analysis
 library(grDevices) # Pseudotime colors
 library(RColorBrewer) # Pseudotime colors
+library(monocle3) # Pseudotime 2
+library(SeuratWrappers) # For cell_data_set
 ```
 
 
 # Data Prep
 ```{r - Loading, normalizing, identifying variaility,and scaling}
-HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/hpap.pmacs-BetaCells/Data/FirstCountMatrix.csv", row.names = 1)
+HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Beta Cell Study/Data/FirstCountMatrix.csv", row.names = 1)
 
 #Creating a Seurat object
 pancr_cells <- CreateSeuratObject(counts = HQ_counts)
@@ -155,6 +157,7 @@ VlnPlot(pancr_cells, features = mad_beta_study)
 VlnPlot(pancr_cells, features = beta_features)
 VlnPlot(pancr_cells, features = alpha_features)
 VlnPlot(pancr_cells, features = delta_features)
+VlnPlot(pancr_cells, features = "INS")
 
 
 ```
@@ -186,7 +189,7 @@ heatmap_plot <- DoHeatmap(pancr_cells, features = top10$gene) + NoLegend()
 
 ```{r - Visualizign donor grouping}
 
-metadata_df <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/hpap.pmacs-BetaCells/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
+metadata_df <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Beta Cell Study/Data/PANCDB/Cleaned-N-Aligned-hpapdata/metadata_T2D.csv")
 
 #removing the quantfile location column
 metadata_df$quant_file <- NULL
@@ -221,7 +224,7 @@ head(Embeddings(beta_cells, "umap"))
 # converting to single cell experimenta
 sce_pancreas <- as.SingleCellExperiment(beta_cells)
 
-sce_pancreas <- slingshot(sce_pancreas, clusterLabels = "seurat_clusters", reducedDim = "UMAP")
+sce_pancreas <- slingshot(sce_pancreas, clusterLabels = "seurat_clusters", reducedDim = "UMAP", useNames = TRUE)
 
 colors <- colorRampPalette(brewer.pal(11, 'Spectral')[-6])(100)
 plotcol <- colors[cut(sce_pancreas$slingPseudotime_1, breaks = 100)]
@@ -262,6 +265,35 @@ lines(SlingshotDataSet(sce_pancreas), lwd=2, type = 'lineages', col = 'black')
 ```
 
 
+# Pseudotime with monocle
+
+```{r}
+HQ_counts <- read.csv("/Documents and Settings/jonan/Documents/1Work/scWork/Beta Cell Study/Data/FirstCountMatrix.csv", row.names = 1)
+
+#Creating a Seurat object
+pancr_cells <- CreateSeuratObject(counts = HQ_counts)
+
+# Convert Seurat object to Monocle's CellDataSet format
+cds <- as.cell_data_set(pancr_cells)
+
+# Preprocess the data (normalization and feature selection)
+cds <- preprocess_cds(cds, num_dim = 50)
+
+# Reduce the dimensionality using UMAP (or PCA, if preferred)
+cds <- reduce_dimension(cds, reduction_method = "UMAP")
+
+# Cluster the cells
+cds <- cluster_cells(cds)
+
+# Learn the trajectory graph
+cds <- learn_graph(cds)
+
+# Order cells in pseudotime
+cds <- order_cells(cds)
+
+# Plot the pseudotime trajectory
+plot_cells(cds, color_cells_by = "pseudotime")
+```
 
 
 
