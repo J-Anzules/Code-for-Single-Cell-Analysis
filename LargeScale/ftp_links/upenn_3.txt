@@ -1,0 +1,9 @@
+hpapdata/HPAP-051/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-051_10xscRNA_97173.L002.I1_fastq-data.fastq.gz
+hpapdata/HPAP-051/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-051_10xscRNA_97173.L002.R1_fastq-data.fastq.gz
+hpapdata/HPAP-051/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-051_10xscRNA_97173.L002.R2_fastq-data.fastq.gz
+hpapdata/HPAP-057/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-057_10xscRNA_98616.L001.I1_fastq-data.fastq.gz
+hpapdata/HPAP-057/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-057_10xscRNA_98616.L001.R1_fastq-data.fastq.gz
+hpapdata/HPAP-057/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-057_10xscRNA_98616.L001.R2_fastq-data.fastq.gz
+hpapdata/HPAP-058/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-058_10xscRNA_98617.L001.I1_fastq-data.fastq.gz
+hpapdata/HPAP-058/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-058_10xscRNA_98617.L001.R1_fastq-data.fastq.gz
+hpapdata/HPAP-058/Islet Studies/Islet molecular phenotyping studies/Single-cell RNAseq/Upenn_scRNAseq/fastq/HPAP-058_10xscRNA_98617.L001.R2_fastq-data.fastq.gz
