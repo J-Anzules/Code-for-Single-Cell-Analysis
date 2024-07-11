@@ -68,3 +68,6 @@ echo "Stanford count = $stanford_count"
 echo "Other count = $other_count"
 echo "md5 count = $md5_count"
 echo "All counts = $total"
+
+
+# Processing unique patient data

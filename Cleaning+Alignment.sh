@@ -43,11 +43,11 @@ for file_pwd in $(cat $FILE_LIST); do
     echo "#############################################################"
 
     for fastq_file in "$file_pwd"/*-R1_fastq-data.fastq.gz; do
-        # # Adding and testing the count
-        # ((count++))
-        # if [[ $count -ge $count_end ]]; then
-        #     break
-        # fi
+        # Adding and testing the count
+        ((count++))
+        if [[ $count -ge $count_end ]]; then
+            break
+        fi
 
         base_name=$(basename "$fastq_file" -R1_fastq-data.fastq.gz) #Removing suffix to later find the R2 strand
         paired_file="$file_pwd/${base_name}-R2_fastq-data.fastq.gz"
@@ -78,12 +78,12 @@ for file_pwd in $(cat $FILE_LIST); do
          # Check if fastp was successful
         if [ $? -eq 0 ]; then
             # Align with salmon
-            # salmon quant    -i "$SALM_INDEX" \
-            #                 -l A \
-            #                 -1 ./temp/"${base_name}_clean_R1.fastq.gz" \
-            #                 -2 ./temp/"${base_name}_clean_R2.fastq.gz" \
-            #                 -o "$OUTPUT_DIR/${base_name}_quant"
-            # Check if salmon was successful
+            salmon quant    -i "$SALM_INDEX" \
+                            -l A \
+                            -1 ./temp/"${base_name}_clean_R1.fastq.gz" \
+                            -2 ./temp/"${base_name}_clean_R2.fastq.gz" \
+                            -o "$OUTPUT_DIR/${base_name}_quant"
+            Check if salmon was successful
             if [ $? -eq 0 ]; then
                 # rm "./temp/${base_name}_clean_R1.fastq.gz" "./temp/${base_name}_clean_R2.fastq.gz"
                 # I will be using the part of the file name to name the cell. OG metadata has a similar cellID

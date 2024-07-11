@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# -------------------------------------------------------------------------------------->
+# File: process_fastq.sh
+# Author: Jonathan Anzules
+# Date: 11/1/23
+# Description: This script processes FASTQ files for a large-scale analysis of beta cell
+# heterogeneity in Type 2 Diabetes (T2D). It downloads data from specified FTP links, 
+# cleans the FASTQ files using fastp, quantifies transcript abundance using Salmon,
+# and compiles metadata information.                                                                                                                                          
+# -------------------------------------------------------------------------------------->
+
+# Directories
+FASTQ_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/raw_download" # Replace with your actual path
+OUTPUT_DIR="path/to/output/directory" # Replace with your actual path
+METADATA_FILE="$OUTPUT_DIR/metadata.csv"
+R_SCRIPT="path/to/your_r_script.R" # Replace with the path to your R script
+
+# Initialize the metadata file if it does not exist
+if [ ! -f "$METADATA_FILE" ]; then
+    echo "quant_file,donor,cell,batch" > "$METADATA_FILE"
+fi
+
+# Download function (based on pancdb_example.bash)
+download_file() {
+    local ftp_link=$1
+    wget -P "$FASTQ_DIR" "$ftp_link"
+}
+
+# List of FTP links to download
+FTP_LINKS=(
+    "ftp://example.com/path/to/HPAP-001_scRNA_43690_fastq-data.fastq.gz"
+    "ftp://example.com/path/to/HPAP-001_scRNA_43691_fastq-data.fastq.gz"
+    # Add more links as needed
+)
+
+# Process each pair of files
+for ((i=0; i<${#FTP_LINKS[@]}; i+=2)); do
+    # Download the files
+    download_file "${FTP_LINKS[i]}"
+    download_file "${FTP_LINKS[i+1]}"
+
+    # Get base names
+    file1=$(basename "${FTP_LINKS[i]}")
+    file2=$(basename "${FTP_LINKS[i+1]}")
+    base_name1="${file1%_fastq-data.fastq.gz}"
+    base_name2="${file2%_fastq-data.fastq.gz}"
+
+    # Use fastp to clean the FASTQ files
+    fastp -i "$FASTQ_DIR/$file1" -o "$OUTPUT_DIR/${base_name1}_clean.fastq.gz"
+    fastp -i "$FASTQ_DIR/$file2" -o "$OUTPUT_DIR/${base_name2}_clean.fastq.gz"
+
+    # Check if fastp was successful
+    if [ $? -eq 0 ]; then
+        # Align with salmon
+        salmon quant -i /path/to/salmon/index -l A -r "$OUTPUT_DIR/${base_name1}_clean.fastq.gz" -o "$OUTPUT_DIR/${base_name1}_quant"
+        salmon quant -i /path/to/salmon/index -l A -r "$OUTPUT_DIR/${base_name2}_clean.fastq.gz" -o "$OUTPUT_DIR/${base_name2}_quant"
+
+        # Check if salmon was successful
+        if [ $? -eq 0 ]; then
+            # Delete the intermediate cleaned FASTQ files
+            rm "$OUTPUT_DIR/${base_name1}_clean.fastq.gz" "$OUTPUT_DIR/${base_name2}_clean.fastq.gz"
+            
+            # Extract metadata information from the base_name
+            IFS='_' read -ra META1 <<< "$base_name1"
+            donor1="${META1[0]}"
+            cell1="${META1[1]}"
+            batch1="${META1[2]}"
+
+            IFS='_' read -ra META2 <<< "$base_name2"
+            donor2="${META2[0]}"
+            cell2="${META2[1]}"
+            batch2="${META2[2]}"
+
+            # Append to the metadata file
+            echo "$OUTPUT_DIR/${base_name1}_quant/quant.sf,$donor1,$cell1,$batch1" >> "$METADATA_FILE"
+            echo "$OUTPUT_DIR/${base_name2}_quant/quant.sf,$donor2,$cell2,$batch2" >> "$METADATA_FILE"
+
+            # Delete the original raw fastq files
+            rm "$FASTQ_DIR/$file1" "$FASTQ_DIR/$file2"
+
+            # Run R script to generate count matrix and rename genes
+            Rscript "$R_SCRIPT" "$OUTPUT_DIR/${base_name1}_quant/quant.sf" "$OUTPUT_DIR/${base_name2}_quant/quant.sf"
+        fi
+    fi
+done

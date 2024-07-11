@@ -1,7 +1,11 @@
 #!/bin/bash
 
+#Root ftp location
+root_links="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Code-for-Single-Cell-Analysis/LargeScale/ftp_links/Organized links/Healthy/"
+
+
 # Input and output file paths
-input_file="/mnt/data/ftpLinks.txt"
+input_file="/mnt/data/ftpLinks.txt" # 6374
 output_upenn_1="/mnt/data/upenn_1.txt"
 output_upenn_2="/mnt/data/upenn_2.txt"
 output_stanford="/mnt/data/stanford.txt"
