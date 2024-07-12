@@ -4,15 +4,10 @@
 #   * Data (if requested) will be saved in "hpapdata" subdirectory;
 #   * Metadata (if requested) will be saved in "metadata" subdirectory.
 
-
-## ToDO
-# 1. This file must take a number entry to test the pipeline for the first x number of files
-
-
 DATA_SERVER="https://hpap.faryabilab.com"
-DATA_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/raw_download"
-METADATA_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale"
-FILES="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Code-for-Single-Cell-Analysis/LargeScale/ftp_links/upenn_1.txt"
+DATA_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/raw_download_healthy"
+# METADATA_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale"
+FILES="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Code-for-Single-Cell-Analysis/LargeScale/ftp_links/healthy/upenn_1.txt"
 
 # TODO: This must be chanced in a way that it takes in the value from another script. 
 

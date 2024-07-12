@@ -15,11 +15,12 @@
 #   - Bash
 ############################################################################################
 
-OUTPUT_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/quant_files/upenn1"
+
+OUTPUT_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/quant_files_healthy/upenn1"
 SALM_INDEX="/mnt/c/Users/jonan/Documents/Genomes/Homo-Sapiens/GRCh38/GRCh38-Transcript-Salmon-index"
-DATA_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/raw_download"
+DATA_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/raw_download_healthy"
 TEMP_DIR="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale"
-scMETADATA_NAME="metadata_upenn1"
+scMETADATA_NAME="metadata_upenn1_healthy"
 
 # Initialize the metadata file
 METADATA_FILE="/mnt/c/Users/jonan/Documents/1Work/scWork/Beta Cell Study/Data/LargeScale/${scMETADATA_NAME}.csv"
@@ -95,4 +96,4 @@ for fastq_file in "${FASTQ_FILES[@]}"; do
 done
 
 # Removing temp folder
-# rm -r "$TEMP_DIR"/temp
+rm -r "$TEMP_DIR"/temp
