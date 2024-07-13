@@ -1,0 +1,3 @@
+/mnt/c/Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/raw_download_healthy/HPAP-008_scRNA_57962_fastq-data.fastq.gz
+/mnt/c/Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/raw_download_healthy/HPAP-008_scRNA_57963_fastq-data.fastq.gz
+/mnt/c/Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/raw_download_healthy/HPAP-008_scRNA_57964_fastq-data.fastq.gz
