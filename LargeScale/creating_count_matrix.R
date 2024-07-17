@@ -1,6 +1,7 @@
 library(dplyr)
 library(tximport) # Importing quant_sf files
 library(biomaRt) # Converting ensembleID to geneID
+library(Seurat)
 
 # library(GenomicFeatures) #Useful genomics tools
 # library(BiocManager)
@@ -10,7 +11,7 @@ library(biomaRt) # Converting ensembleID to geneID
 # library(scran) # normalization based on cell clusters
 # library(SingleCellExperiment) #For holding single-cell RNA_seq data
 # library(biomaRt) # Switching names from ensemble ID to gene symbol
-# library(Seurat)
+
 # library(ggplot2)
 # library(cowplot) # For violin plots
 
@@ -20,6 +21,7 @@ library(biomaRt) # Converting ensembleID to geneID
 #####
 
 # Define the base directory
+# base_dir <- "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/quant_files_T2D/upenn1/"
 base_dir <- "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/quant_files_healthy/upenn1/"
 
 # List all quant.sf files
@@ -64,15 +66,6 @@ tx2gene <- read.csv("/Documents and Settings/jonan/Documents/Genomes/Homo-Sapien
 # Import the quant files using tximport
 txi <- tximport(files, type = "salmon", tx2gene = tx2gene)
 
-# Assign cell IDs from metadata as column names of the count matrix
-colnames(txi$counts) <- metadata_df$cell_id
-
-# Assign patient names as a new column in the count matrix metadata
-metadata_df$quant_file <- NULL
-txi$meta <- metadata_df
-
-
-
 
 #--------------- Replacing Ensemble ID's with gene names ----------------------#
 ########################
@@ -95,22 +88,22 @@ id_to_name <- setNames(converted_ids$external_gene_name, converted_ids$ensembl_g
 txi_rownames <- rownames(txi$counts)
 rownames(txi$counts) <- ifelse(txi_rownames %in% names(id_to_name), id_to_name[txi_rownames], NA)
 
-
-
-checkNA <- rownames(txi$counts)
-
-sum(sapply(checkNA, is.na))
-
-dim(txi$counts)
-
-
 # Filter out rows where row names are NA or empty
 txi$counts <- txi$counts[!is.na(rownames(txi$counts)) & rownames(txi$counts) != "", ] #878 NA's
 
-#saving dataframe 
-# Save the list to a file
-# save(txi, file = "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/count_matrix_T2D.RData")
-# load("C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/count_matrix_T2D.RData")
+counts <- txi$counts
+colnames(counts) <- metadata_df$cell_id
+rownames(counts) <- make.unique(rownames(counts), sep="-")
 
-save(txi, file = "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/count_matrix_healthy.RData")
-load("C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/count_matrix_healthy.RData")
+#----------------------------------------------------------------------------
+#                   Making Seurat Object
+
+# Create Seurat object
+seurat_obj <- CreateSeuratObject(counts = counts)
+
+# Assign patient names as a new column in the count matrix metadata
+metadata_df$quant_file <- NULL
+seurat_obj <- AddMetaData(seurat_obj, metadata = metadata_df)
+
+saveRDS(seurat_obj, file = "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/count_matrix_T2D.rds")
+saveRDS(seurat_obj, file = "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/count_matrix_healthy.rds")
