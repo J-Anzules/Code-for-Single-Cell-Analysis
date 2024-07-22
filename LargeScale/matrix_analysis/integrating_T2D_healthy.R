@@ -92,6 +92,10 @@ DimPlot(islet_integrated, group.by = "integrated_snn_res.0.05", label = TRUE)
 
 islet_integrated <- RunUMAP(islet_integrated, dims = 1:7, resolution = 0.05)
 
+# Saving Integrated data
+saveRDS(islet_integrated, file = "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/integrated_data.rds")
+
+
 #-------------------------Visualizing-----------------------------------------
 
 
@@ -112,19 +116,7 @@ dev.off()
 DefaultAssay(islet_integrated)
 
 
-#----------------------------Finding INS---------------------------------------
-# Plotting INS expression on UMAP
-FeaturePlot(islet_integrated, features = "INS", min.cutoff = "q10", max.cutoff = "q90")
 
-
-#-------------------------------Identifying clusters -------------------------
-
-DefaultAssay(islet_integrated) <- "RNA"
-islet_integrated@meta.data$condition
-
-markers_cluster_1 <- FindConservedMarkers(islet_integrated,
-                                          ident.1 = 1,
-                                          grouping.var = 'condition')
 
 
 
