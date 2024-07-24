@@ -499,21 +499,176 @@ traj_results <- graph_test(cds_ins2, neighbor_graph = "principal_graph",
                            cores = 10)
 
 
+ordered_results <-traj_results %>%
+  arrange(q_value) %>%
+  filter(status == 'OK') %>%
+  head(n=32)
+
+most <- rownames(ordered_results)[1:4]
+most2 <- rownames(ordered_results)[5:8]
+most3 <- rownames(ordered_results)[9:12]
+#---------------------Visualizing the top 32 genes------------------------------
+
+FeaturePlot(ins_cells, features = most)
+FeaturePlot(ins_cells, features = most2)
+FeaturePlot(ins_cells, features = "INS", pt.size=1.5)
+
+genes <- rownames(ordered_results)
+
+for (i in seq(1, length(genes), by = 4)) {
+  # Get the current set of four genes
+  current_genes <- genes[i:min(i + 3, length(genes))]
+  
+  # Generate the FeaturePlot
+  plot <- FeaturePlot(ins_cells, features = current_genes)
+  
+  # Define the file name
+  file_name <- paste0(output_fig_ins, "Top32Genes/", "FeaturePlot_", i, "_to_", min(i + 3, length(genes)), ".png")
+  
+  # Save the plot
+  ggsave(filename = file_name, plot = plot, width = 10, height = 6, dpi = 300)
+}
+
+
+#---------------------Gene set Enrichment Analysis-----------------------------
+library(dplyr)
+
+colnames(traj_results)
+dfGSEA <- traj_results %>%
+  filter(status == 'OK') %>%  # filter only successful results
+  arrange(desc(morans_I)) %>%  # Sort genes based on Moran's I statistic in descending order
+  mutate(rank = row_number()) %>%  # Assign ranks based on Moran's I value
+  dplyr::select(gene_short_name, morans_I, p_value, rank)
+
+# Create a named vector of ranks for GSEA
+ranks <- setNames(dfGSEA$rank, dfGSEA$gene_short_name)
+
+# Check for duplicates and resolve them by retaining the highest value
+duplicates <- names(ranks)[duplicated(names(ranks)) | duplicated(names(ranks), fromLast = TRUE)]
+if (length(duplicates) > 0) {
+  ranks <- tapply(ranks, INDEX = names(ranks), FUN = max)
+}
+
+
+# Import .gmt file with pathway information by gene symbol (Gene sets derived from the GO Biological Process ontology)
+## Obtained from GSEA 3-6-2023 http://www.gsea-msigdb.org/gsea/msigdb/collections.jsp
+go <- gmtPathways("C:/Users/jonan/Documents/Tyseq/Data/c5.go.v2023.1.Hs.symbols.gmt")
+
+library(fgsea) 
+
+# Run GSEA
+set.seed(06212022)  # Setting a seed for reproducibility
+fgseaRes <- fgsea(pathways = go,
+                  stats = ranks,
+                  minSize = 6,
+                  maxSize = 500,
+                  nproc = 1)
+
+
+# Sort the results by adjusted p-value in ascending order
+sorted_fgseaRes <- fgseaRes %>%
+  arrange(padj) %>%  # Sorting by padj, where lower values indicate higher statistical significance
+  # dplyr::select(pathway, padj) %>%
+  head(n=20)
+
+
+sorted_fgseaRes
+head(ranks, n=50)
+
+#---------------------------------Visualizing results--------------------------
+################# Preparing Data
+library(Matrix)
+library(pheatmap)
+
+# Select the top 20 pathways
+topPathways <- fgseaRes %>% 
+  arrange(padj) %>%
+  mutate(NES_sign = ifelse(NES > 0, "Positive", "Negative")) %>%
+  head(n = 20)
+
+
+# Expression matrix
+expression_matrix <- assay(cds_ins2, "counts") # Adjust to your specific assay type if necessary
+
+
+################# BAR plot
+# Create the bar plot
+pathways <- ggplot(topPathways, aes(reorder(pathway, NES), NES, fill = NES_sign)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_minimal() +
+  xlab("Pathway") +
+  ylab("Normalized Enrichment Score (NES)") +
+  ggtitle("Top 20 Enriched Pathways") +
+  scale_fill_manual(values = c("Positive" = "steelblue", "Negative" = "firebrick"))+
+  theme(
+    plot.background = element_rect(fill = "white", color = NA), # Set plot background to white
+    panel.background = element_rect(fill = "white", color = NA), # Ensure panel background is white
+    legend.background = element_rect(fill = "white", color = NA), # White background for legend
+    legend.position = "right"
+  )
+
+ggsave(paste0(output_fig_ins, "Top_20_Enriched_Pathways.png") , plot = pathways, width = 10, height = 6, dpi = 300)
+################# Dot plot for NES and pathways
+
+# Prepare the data
+topPathways2 <- fgseaRes %>% 
+  arrange(padj) %>% 
+  head(n = 20) %>% 
+  mutate(pathway = reorder(pathway, NES))
+
+# Create the dot plot
+ggplot(topPathways2, aes(x = NES, y = pathway)) +
+  geom_point(aes(size = -log10(padj), color = NES)) +
+  scale_color_gradient(low = "blue", high = "red") +
+  theme_minimal() +
+  xlab("Normalized Enrichment Score (NES)") +
+  ylab("Pathway") +
+  ggtitle("Top 20 Enriched Pathways by NES")
+
+
+#--------------Inspecting genes in pathways of interest-----------
+topPathways2
+GOBP_POSITIVE_REGULATION_OF_INTEGRIN_MEDIATED_SIGNALING_PATHWAY
+# immunoglobulin_complex_genes <- go[["GOBP_SENSORY_PERCEPTION_OF_CHEMICAL_STIMULUS"]]
+# immunoglobulin_complex_genes <- go[["GOBP_POSITIVE_REGULATION_OF_INTEGRIN_MEDIATED_SIGNALING_PATHWAY"]]
+# immunoglobulin_complex_genes <- go[["GOBP_GLYCINE_TRANSPORT"]]
+immunoglobulin_complex_genes <- go[["GOBP_POSITIVE_REGULATION_OF_INTEGRIN_MEDIATED_SIGNALING_PATHWAY"]]
 
 
 
+# Filter the graph_test results to include only genes in this pathway
+traj_results_filtered <- traj_results %>%
+  filter(gene_short_name %in% immunoglobulin_complex_genes)
+
+# Sort the filtered results by Moran's I statistic to identify the most influential genes
+sorted_traj_results <- traj_results_filtered %>%
+  arrange(desc(morans_I)) %>%
+  dplyr::select(gene_short_name, morans_I, p_value)
+
+# sorted_traj_results <- traj_results_filtered %>%
+#   arrange() %>%
+#   dplyr::select(gene_short_name, morans_I, p_value)
+
+print(sorted_traj_results)
+
+######################### 
+
+# Visualizing - GOCC_IMMUNOGLOBULIN_COMPLEX genes
+features1 = rownames(sorted_traj_results)[1:4]
+features2 = rownames(sorted_traj_results)[5:8]
+features3 = rownames(sorted_traj_results)[9:12]
+FeaturePlot(ins_cells, features = features1, pt.size=1.5)
+FeaturePlot(ins_cells, features = features2, pt.size=1.5)
+FeaturePlot(ins_cells, features = features3, pt.size=1.5)
 
 
+FeaturePlot(ins_cells, features = "PCSK1N", pt.size=1.5)
+FeaturePlot(ins_cells, features = "ACTB", pt.size=1.5)
+FeaturePlot(ins_cells, features = "HSPB1", pt.size=1.5)
+FeaturePlot(ins_cells, features = "HLA-H", pt.size=1.5)MTCO3P22
+FeaturePlot(ins_cells, features = "MTCO3P22", pt.size=1.5)
 
 
-
-
-
-
-
-
-sort(unique(cds_ins@colData$age))
-
-
-
-
+#----------------------Searching for branches--------------------------------
+cds_ins2@principal_graph_aux@listData$UMAP$
