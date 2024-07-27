@@ -36,7 +36,7 @@ cell_names_to_keep <- colnames(integrated_data)[cells_in_range]
 
 # Subset the Seurat object by these cell names
 ins_cells <- integrated_data[, cell_names_to_keep]
-
+# saveRDS(ins_cells, "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/insulin_cells.rds")
 #---------------------------Pre processing-------------------------------------
 ins_cells <- NormalizeData(ins_cells)
 ins_cells <- FindVariableFeatures(ins_cells)
@@ -668,7 +668,33 @@ FeaturePlot(ins_cells, features = "ACTB", pt.size=1.5)
 FeaturePlot(ins_cells, features = "HSPB1", pt.size=1.5)
 FeaturePlot(ins_cells, features = "HLA-H", pt.size=1.5)MTCO3P22
 FeaturePlot(ins_cells, features = "MTCO3P22", pt.size=1.5)
+FeaturePlot(ins_cells, features = c('BACH2','ALDH1A3'), pt.size=1.5) # Regulators of beta cell dedifferentiation
+RBP4, FFAR4/GPR120, ID1, ID2, and ID3
 
+
+
+FeaturePlot(ins_cells, features = c("PDX1", "NKX"), pt.size=1.5) #Beta cell markers
+FeaturePlot(ins_cells, features = c('BACH2','ALDH1A3'), pt.size=1.5)
+FeaturePlot(ins_cells, features = c("NKX6-1", "MYCL"), pt.size=1.5) #Beta cell markers
+FeaturePlot(ins_cells, features = c("MYC", "MYCL", "MYCN"), pt.size=1.5) #progenitor cell markings
+FeaturePlot(ins_cells, features = "MAFA", pt.size=1.5) #key transcription factor
+
+#-----------------------------From bulk rna-seq------------------------------#
+FeaturePlot(ins_cells, features = c("AMY2A", "INS"), pt.size=1.5) #key transcription factor
+FeaturePlot(integrated_data, features = c("AMY2A"), pt.size=1.5)
+
+
+#----------------------integrated gene explortion--------------------------
+DimPlot(integrated_data, reduction = "umap", label = TRUE)
+FeaturePlot(integrated_data, features = c("PDX1", "NKX6-1"), pt.size=1.5) #Beta cell markers
+FeaturePlot(integrated_data, features = c("Ngn3", "Nanog", "OCT4", "L-MYC"))
+FeaturePlot(integrated_data, features = c("ALDH1A3"))
+FeaturePlot(integrated_data, features = c("MAFA"), pt.size=1.5)
+
+
+grep("aldh1a3", tolower(rownames(ins_cells)), value = TRUE)
+grep("maf", tolower(rownames(ins_cells)), value = TRUE)
 
 #----------------------Searching for branches--------------------------------
-cds_ins2@principal_graph_aux@listData$UMAP$
+unique(integrated_data@meta.data$patient_name)
+length(unique(integrated_data@meta.data$patient_name))

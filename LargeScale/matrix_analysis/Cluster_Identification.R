@@ -74,6 +74,8 @@ islet_intr <- RenameIdents(islet_intr, '4' = 'Endothelial')
 # head(markers_cluster_5) # delta cells
 islet_intr <- RenameIdents(islet_intr, '5' = 'Delta')
 
+saveRDS(islet_intr, "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Data/LargeScale/intr_labeled.rds")
+
 # Saving cluster labels figure
 cluster_labels <- DimPlot(islet_intr, reduction = 'umap', label = TRUE)
 # Save the plot to a file
@@ -86,11 +88,11 @@ ggsave(paste0(output_fig,"cluster_labels.png"),
 ins_plot <- FeaturePlot(islet_intr, features = "INS", min.cutoff = "q50", max.cutoff = "q90")
 cluster_insulin <- plot_grid(cluster_labels, ins_plot, labels = "AUTO")
 
-ggsave(paste0(output_fig,"cluster_insulin.png"), 
-       plot = cluster_insulin, 
-       width = 10, 
-       height = 8, 
-       dpi = 300)
+# ggsave(paste0(output_fig,"cluster_insulin.png"), 
+#        plot = cluster_insulin, 
+#        width = 10, 
+#        height = 8, 
+#        dpi = 300)
 
 #-------------------Comparing T2D beta cells and Healthy------------------------
 islet_intr$celltype <- Idents(islet_intr)
