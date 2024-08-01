@@ -695,6 +695,55 @@ FeaturePlot(integrated_data, features = c("MAFA"), pt.size=1.5)
 grep("aldh1a3", tolower(rownames(ins_cells)), value = TRUE)
 grep("maf", tolower(rownames(ins_cells)), value = TRUE)
 
+
+
+
+#-----------------Transition genes--------------------
+FeaturePlot(ins_cells, features = c("PIGR"), pt.size=3)
+FeaturePlot(ins_cells, features = c("SCNN1A"), pt.size=3)
+FeaturePlot(ins_cells, features = c("CFAP69"), pt.size=3)
+FeaturePlot(ins_cells, features = c("OR14J1"), pt.size=3)
+FeaturePlot(ins_cells, features = c("CD63"), pt.size=3)
+
+#---------------------What we want--------------------#
+
+####### Top left
+FeaturePlot(ins_cells, features = "REG1A", pt.size=1.5)
+FeaturePlot(ins_cells, features = "TTR", pt.size=1.5) 
+
+FeaturePlot(ins_cells, features = "ACTB", pt.size=1.5) 
+FeaturePlot(ins_cells, features = "CELA3A", pt.size=1.5)
+
+FeaturePlot(ins_cells, features = c("PRSS2", "CELA3A", "PRSS1"), pt.size=1.5)
+
+
+####### Top Right
+
+
+FeaturePlot(ins_cells, features = c("HLA-H", "ACTB", "TTR"), pt.size=1.5)
+FeaturePlot(ins_cells, features = "HLA-H", pt.size=1.5)
+FeaturePlot(ins_cells, features = "GCG", pt.size=1.5)
+
+
+
+ins_cells@meta.data$patient_name
+
+plot_cells(cds_ins,
+           color_cells_by = 'patient_name',  # Color cells based on patient name
+           label_cell_groups = FALSE,
+           show_trajectory_graph = FALSE,  # Ensure trajectories are not shown
+           cell_size = 0.8) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA), # Set plot background to white
+    panel.background = element_rect(fill = "white", color = NA), # Ensure panel background is white
+    legend.background = element_rect(fill = "white", color = NA), # White background for legend
+    legend.position = "right"
+  )
+table(ins_cells@meta.data$condition)
+
+sort(unique(ins_cells@meta.data$patient_name))
+
 #----------------------Searching for branches--------------------------------
 unique(integrated_data@meta.data$patient_name)
 length(unique(integrated_data@meta.data$patient_name))
