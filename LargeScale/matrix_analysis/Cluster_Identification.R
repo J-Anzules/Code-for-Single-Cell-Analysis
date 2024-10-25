@@ -19,7 +19,46 @@ grid.arrange(p1, p2, p3, ncol = 2, nrow = 2)
 #----------------------------Finding INS---------------------------------------
 # Plotting INS expression on UMAP
 FeaturePlot(islet_intr, features = "INS", min.cutoff = "q50", max.cutoff = "q90")
-FeaturePlot(islet_intr, features = "AMY2A", min.cutoff = "q10", max.cutoff = "q90")
+#Acinar gnes?
+
+output_fig_acinar <- "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Figures/SecondSet/Acinar_Associated _Genes/"
+FeaturePlot(islet_intr, features = "AMY2B",  pt.size = 2)
+FeaturePlot(islet_intr, features = "AMY2A",  pt.size = 2)
+FeaturePlot(islet_intr, features = "GNMT",  pt.size = 2)
+FeaturePlot(islet_intr, features = "PLIN4", pt.size = 2)
+FeaturePlot(islet_intr, features = "CLPS", pt.size = 2)
+FeaturePlot(islet_intr, features = "CELA3A", pt.size = 2)
+
+
+
+output_fig_acinar <- "C://Users/jonan/Documents/1Work/scWork/Beta_Cell_Study/Figures/SecondSet/Acinar_Associated_Genes/"
+
+# Plot and save AMY2B
+p1 <- FeaturePlot(islet_intr, features = "AMY2B")
+ggsave(filename = paste0(output_fig_acinar, "AMY2B_featureplot.png"), plot = p1)
+
+# Plot and save AMY2A
+p2 <- FeaturePlot(islet_intr, features = "AMY2A")
+ggsave(filename = paste0(output_fig_acinar, "AMY2A_featureplot.png"), plot = p2)
+
+# Plot and save GNMT
+p3 <- FeaturePlot(islet_intr, features = "GNMT")
+ggsave(filename = paste0(output_fig_acinar, "GNMT_featureplot.png"), plot = p3)
+
+# Plot and save PLIN4
+p4 <- FeaturePlot(islet_intr, features = "PLIN4")
+ggsave(filename = paste0(output_fig_acinar, "PLIN4_featureplot.png"), plot = p4)
+
+# Plot and save CLPS
+p5 <- FeaturePlot(islet_intr, features = "CLPS")
+ggsave(filename = paste0(output_fig_acinar, "CLPS_featureplot.png"), plot = p5)
+
+# Plot and save CELA3A
+p6 <- FeaturePlot(islet_intr, features = "CELA3A")
+ggsave(filename = paste0(output_fig_acinar, "CELA3A_featureplot.png"), plot = p6)
+
+
+
 
 #-------------------------------Identifying clusters -------------------------
 

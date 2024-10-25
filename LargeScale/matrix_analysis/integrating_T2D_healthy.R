@@ -60,7 +60,7 @@ dev.off()
 
 
 #--------------------Performing integration------------------------------------
-obj.list <- SplitObject(Islets_merged, split.by = 'patient_name')
+obj.list <- SplitObject(LNCaP, split.by = 'Cell_Origin')
 
 for( i in 1:length(obj.list)){
   obj.list[[i]] <- NormalizeData(object = obj.list[[i]])
